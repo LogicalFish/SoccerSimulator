@@ -1,4 +1,4 @@
-#Installation 
+## Installation 
 - The project requires Django and the openpyxl library
     - pip install django
     - pip install openpyxl
