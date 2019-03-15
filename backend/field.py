@@ -77,7 +77,9 @@ class Field:
         """
         Static helper method that specifies which soccer players can be found where in the field.
         :param goal_distance: the distance of the ball to the goal.
-        :return: A if the ball is close to the opponent's goal, M if it is in the middle, D if the ball is close to their own goal.
+        :return: A if the ball is close to the opponent's goal,
+                M if it is in the middle,
+                D if the ball is close to their own goal.
         """
         if goal_distance >= s.FIELD_LENGTH * (2 / 3):
             return "D"
@@ -93,7 +95,7 @@ class Field:
         """
         for team in self.teams:
             if self.ball_owner not in team.field_team:
-                self.ball_owner = random.choice(team.get_position_list(self.get_zone(s.FIELD_LENGTH - self.goal_distance())))
+                self.ball_owner = self.get_random_new_player(team)
                 self.speed = s.PLAYER_SPEED
                 return team
 
@@ -132,6 +134,8 @@ class Field:
             direction = -1
         elif self.ball_pos == s.FIELD_LENGTH/2:
             direction = self.get_team().get_dir(self.ball_pos)*-1
+        else:
+            raise ValueError("Error: Kickoff attempted from impossible place.")
         self.ball_pos += movement * direction
 
     def pass_ball(self):
@@ -151,11 +155,27 @@ class Field:
         direction = self.get_team().get_dir(self.ball_pos)
         self.ball_pos += movement * direction
         if random.randint(1, 100) <= chance_success:
-            #Successful pass. Get a new player to take the ball.
-            self.ball_owner = random.choice(self.get_team().get_position_list(self.get_zone(self.goal_distance())))
+            # Successful pass. Get a new player to take the ball.
+            self.ball_owner = self.get_random_new_player()
             self.speed = s.PLAYER_SPEED
         else:
             self.ball_switch()  # Failure to pass. Hand over ball.
+
+    def get_random_new_player(self, team=None):
+        """
+        Helper method. Returns a random player that is not the current owner
+        :return: A random new player that is not the current ball owner.
+        """
+        if team is None:
+            team = self.get_team()
+        catch_list = team.get_position_list(self.get_zone(self.goal_distance()))[:]
+        if self.ball_owner in catch_list:
+            catch_list.remove(self.ball_owner)
+        if len(catch_list) == 0:
+            catch_list = team.field_team[:]
+            if self.ball_owner in catch_list:
+                catch_list.remove(self.ball_owner)
+        return random.choice(catch_list)
 
     def shoot(self):
         """
@@ -177,9 +197,9 @@ class Field:
         intercept_roll = random.randint(1, 100)
         result = False
 
-        #Shoot towards the goal
+        # Shoot towards the goal
         if shoot_roll <= chance_success:
-            #Shot reaches goal, chance to intercept
+            # Shot reaches goal, chance to intercept
             if chance_success - shoot_roll > chance_intercept - intercept_roll:
                 self.scores[self.get_team()] += 1
                 self.ball_pos = s.FIELD_LENGTH/2

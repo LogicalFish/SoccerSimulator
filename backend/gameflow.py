@@ -43,7 +43,7 @@ class GameFlow:
                 elif self.play_field.speed < 0 or random.randint(1, 100) <= s.PASS_ODDS:
                     # The ball will be passed.
                     self.play_field.pass_ball()
-                elif self.play_field.goal_distance() < s.SHOOT_DISTANCE and random.randint(1, 100) <= s.SHOOT_CLOSE_ODDS:
+                elif self.play_field.goal_distance() < s.SHOOT_DISTANCE and random.randint(1, 100) < s.SHOOT_CLOSE_ODDS:
                     # The ball is close to the goal, and it should be shot at the goal.
                     self.kickoff = self.play_field.shoot()
                 elif random.randint(1, 1000) <= s.SHOOT_FAR_ODDS:
@@ -65,7 +65,7 @@ class GameFlow:
 
         game_progress = []
 
-        ##Main Loop
+        # MAIN LOOP
         while self.timer < s.MAX_TIME:
             game_progress.append(self.step())
             self.timer += s.STEP_SIZE

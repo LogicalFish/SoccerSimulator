@@ -19,7 +19,9 @@ class TeamSelection(forms.Form):
             for player in player_list[position]:
                 name_list.append((player.name, player.name))
             identifier = position + "-" + team.name
-            self.fields[identifier] = forms.MultipleChoiceField(label="{}:".format(position), widget=forms.CheckboxSelectMultiple, choices=name_list)
+            self.fields[identifier] = forms.MultipleChoiceField(label="{}:".format(position),
+                                                                widget=forms.CheckboxSelectMultiple,
+                                                                choices=name_list)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -29,11 +31,10 @@ class TeamSelection(forms.Form):
         player_list = self.team.get_players_by_name(name_list)
         sorted_list = self.team.sort_team_by_position(player_list)
 
-        errormsg = ""
+        error = ""
         if len(player_list) != 11:
-            errormsg += "Team must have 11 players.\n"
+            error += "Team must have 11 players.\n"
         if "Goalkeeper" in sorted_list.keys() and len(sorted_list["Goalkeeper"]) > 1:
-            errormsg += "Team must have only 1 Goalkeeper.\n"
-        if errormsg:
-            raise forms.ValidationError(errormsg)
-
+            error += "Team must have only 1 Goalkeeper.\n"
+        if error:
+            raise forms.ValidationError(error)

@@ -1,6 +1,8 @@
 import random
 
 pos_dict = {"G": "Goalkeeper", "D": "Defender", "M": "Midfielder", "A": "Attacker"}
+
+
 class Team:
     """
     A class representing a team of players.
@@ -26,14 +28,14 @@ class Team:
         :param bal_pos: The position of the ball.
         :return: -1 if the ball should go 'left, 1 if the ball should go 'right'
         """
-        x = bal_pos - self.goal_pos #If positive, goal = 0
+        x = bal_pos - self.goal_pos  # If positive, goal = 0
         signbit = -1 if x < 0 else 1
         return signbit
 
     def get_players_by_name(self, names):
         """
         Gets Player objects based on a name.
-        :param name: List of names of the player you are looking for.
+        :param names: List of names of the player you are looking for.
         :return: List of Player Objects
         """
         result = []
@@ -59,11 +61,13 @@ class Team:
                 result.append(player)
         return result
 
-    def populate_team(self, headcount={"G":1, "D":4, "M":3, "A":3}):
+    def populate_team(self, headcount=None):
         """
         Select random members from the team to form a field_team.
         :param headcount: A dictionary stating how many players of each position should be on the team.
         """
+        if headcount is None:
+            headcount = {"G": 1, "D": 4, "M": 3, "A": 3}
         self.field_team.clear()
         for position in headcount.keys():
             eligible_players = self.get_position_list(position, False)
@@ -102,7 +106,7 @@ class Team:
         head_count = self.sort_team_by_position(self.field_team)
         if len(head_count) != 4:
             raise ValueError("Field team requires one player in each position.")
-        if "G" in head_count.keys() and len(head_count["G"] > 1):
+        if "G" in head_count.keys() and len(head_count["G"]) > 1:
             raise ValueError("Field team can't have more than one goalkeeper.")
 
 
@@ -110,8 +114,8 @@ class Player:
     """
     A class representing a single Soccer Player.
     Attributes:
-        Name: The Player's full name.
-        Position: The Player's preferred position as a one-letter string.
+        name: The Player's full name.
+        position: The Player's preferred position as a one-letter string.
             (G = Goalkeeper
             D = Defender
             M = Midfielder
