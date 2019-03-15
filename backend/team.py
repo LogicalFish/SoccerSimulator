@@ -1,6 +1,6 @@
 import random
 
-
+pos_dict = {"G": "Goalkeeper", "D": "Defender", "M": "Midfielder", "A": "Attacker"}
 class Team:
     """
     A class representing a team of players.
@@ -30,15 +30,17 @@ class Team:
         signbit = -1 if x < 0 else 1
         return signbit
 
-    def get_player(self, name):
+    def get_players_by_name(self, names):
         """
-        UNUSED METHOD: Gets a Player object based on a name.
-        :param name: The name of the player you are looking for.
-        :return: The Player Object
+        Gets Player objects based on a name.
+        :param name: List of names of the player you are looking for.
+        :return: List of Player Objects
         """
+        result = []
         for player in self.team:
-            if player.name == name:
-                return player
+            if player.name in names:
+                result.append(player)
+        return result
 
     def get_position_list(self, position, field=True):
         """
@@ -69,6 +71,40 @@ class Team:
             for s in selection:
                 self.field_team.append(s)
 
+    def sort_team_by_position(self, team=None):
+        """
+        Return a list of all players, sorted by their position.
+        :return: A dictionary, with the keys being positions, and the values being lists of players.
+        """
+        result = {}
+        if team is None:
+            team = self.team
+        for player in team:
+            if pos_dict[player.position] in result:
+                result[pos_dict[player.position]].append(player)
+            else:
+                result[pos_dict[player.position]] = [player]
+
+        return result
+
+    def create_field_team(self, names):
+        """
+        Create a field team. Raises an exception if the field team is invalid.
+        A field_team is invalid if it does not have 11 players, if it has more than 1 Goalkeeper,
+        or if it does not have at least one player on each position
+        :param names: A list of string values, each containing the name of a player on the team.
+        """
+        self.field_team.clear()
+        if len(names) != 11:
+            raise ValueError("Field team requires 11 players")
+        player_list = self.get_players_by_name(names)
+        self.field_team += player_list
+        head_count = self.sort_team_by_position(self.field_team)
+        if len(head_count) != 4:
+            raise ValueError("Field team requires one player in each position.")
+        if "G" in head_count.keys() and len(head_count["G"] > 1):
+            raise ValueError("Field team can't have more than one goalkeeper.")
+
 
 class Player:
     """
@@ -82,6 +118,7 @@ class Player:
             A = Attacker)
         stat_att: The attack stat
         stat_def: The defense stat
+
     """
 
     def __init__(self, name, position, stat_att, stat_def):

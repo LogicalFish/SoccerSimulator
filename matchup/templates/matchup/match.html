@@ -39,24 +39,41 @@
 
 
             <div class="row">
-                <a class="col-6 text-right">
-                    <h5>{{final.team1}} players:</h5>
+                <a class="col-6 text-center">
+                    <h3>Players:</h3>
                 </a>
-                <a class="col-6 text-left">
-                    <h5>{{final.team2}} players:</h5>
+                <a class="col-6 text-center">
+                    <h3>Highlights:</h3>
+                </a>
+
+            </div>
+
+            <div class="row">
+                <a class="col-3 text-right">
+                    <h5>{{final.team1}}:</h5>
+                </a>
+                <a class="col-3 text-left">
+                    <h5>{{final.team2}}:</h5>
                 </a>
             </div>
             <div class="row">
-                <a class="col-6 text-right">
+                <a class="col-3 text-right">
                     {% for player in final.team1.field_team %}
                     <p> {{ player }} ({{player.position}})</p>
                     {% endfor %}
                 </a>
-                <a class="col-6 text-left">
+                <a class="col-3 text-left">
                     {% for player in final.team2.field_team %}
                     <p> {{ player }} ({{player.position}})</p>
                     {% endfor %}
                 </a>
+                <a class="col-6 text-center">
+                    {% for highlight in highlights %}
+                    <h5>Minute {{ highlight.time }}</h5>
+                    <p><b>{{ highlight.type }}</b> by {{ highlight.player }}! ({{highlight.team}})</p>
+                    {% endfor %}
+                </a>
+
             </div>
 
 

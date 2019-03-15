@@ -31,7 +31,7 @@ class Field:
         """
         :return: String with current status of the field.
         """
-        result = "Current Ball Position = {}. Currently on Ball: {}. Score = {}-{}."
+        result = "Current Ball Position = {}(%). Currently on Ball: {}. Score = {}-{}."
         result = result.format((self.ball_pos*100 / s.FIELD_LENGTH),
                                self.ball_owner,
                                self.scores[self.teams[0]],
@@ -52,7 +52,7 @@ class Field:
         """
         :return: The current state of the match
         """
-        return {'ball': self.ball_pos,
+        return {'ball': int(self.ball_pos),
                 'owner': self.ball_owner,
                 'owner-team': self.get_team(),
                 'team1': self.teams[0],
@@ -116,8 +116,8 @@ class Field:
             C. A random factor.
         :return:
         """
-        movement = random.randint(self.speed - 40, min(self.speed + 25, 500))
-        modifier = max(0.25, self.goal_distance()/s.FIELD_LENGTH)
+        movement = random.randint(self.speed + s.SPEED_DECAY, min(self.speed + s.SPEED_ACCEL, s.MAX_SPEED))
+        modifier = max(s.MIN_SPEED_MOD, self.goal_distance()/s.FIELD_LENGTH)
         self.ball_pos += movement * self.get_team().get_dir(self.ball_pos) * modifier
         self.speed = movement
 
@@ -125,7 +125,7 @@ class Field:
         """
         Method for a kick-off, where the ball is kicked backwards towards the own team.
         """
-        movement = 1000
+        movement = random.randint(s.KICK_OFF_MIN, s.KICK_OFF_MAX)
         if self.ball_pos == 0:
             direction = 1
         elif self.ball_pos == s.FIELD_LENGTH:
@@ -146,14 +146,16 @@ class Field:
         zero_point = s.FIELD_LENGTH*.75 - self.get_team().goal_pos/2
         modifier = (self.ball_pos-zero_point) / (self.get_team().goal_pos-zero_point)
 
-        movement = 1500*modifier
+        movement = random.randint(s.PASS_MIN, s.PASS_MAX)
+        movement = movement * modifier
         direction = self.get_team().get_dir(self.ball_pos)
         self.ball_pos += movement * direction
         if random.randint(1, 100) <= chance_success:
+            #Successful pass. Get a new player to take the ball.
             self.ball_owner = random.choice(self.get_team().get_position_list(self.get_zone(self.goal_distance())))
             self.speed = s.PLAYER_SPEED
         else:
-            self.ball_switch()  # Failure =, hand over ball.
+            self.ball_switch()  # Failure to pass. Hand over ball.
 
     def shoot(self):
         """
@@ -161,24 +163,27 @@ class Field:
         The odds of success are calculated based on:
             A. distance from the goal
             B. Attack stat of the shooting player.
-        In addition, the opposing team has a chance to block, based on their defensive stats.
+        In addition, the opposing team has a chance to intercept, based on their defensive stats.
         Regardless, the enemy team is given the ball.
         """
 
         distance_modifier = max(0, (s.FIELD_LENGTH/2 - self.goal_distance()) / (s.FIELD_LENGTH/2))
 
-        chance_success = max(5, self.ball_owner.stat_att * distance_modifier)
+        chance_success = max(s.MINIMUM_GOAL_CHANCE, self.ball_owner.stat_att * distance_modifier)
         self.ball_pos += self.goal_distance()/2 * self.get_team().get_dir(self.ball_pos)
 
-        chance_catch = self.get_opposing_defense().stat_def
+        chance_intercept = self.get_opposing_defense().stat_def
         shoot_roll = random.randint(1, 100)
-        catch_roll = random.randint(1, 100)
+        intercept_roll = random.randint(1, 100)
         result = False
 
-        if shoot_roll <= chance_success and chance_success - shoot_roll > chance_catch - catch_roll:
-            self.scores[self.get_team()] += 1
-            self.ball_pos = s.FIELD_LENGTH/2
-            result = True
+        #Shoot towards the goal
+        if shoot_roll <= chance_success:
+            #Shot reaches goal, chance to intercept
+            if chance_success - shoot_roll > chance_intercept - intercept_roll:
+                self.scores[self.get_team()] += 1
+                self.ball_pos = s.FIELD_LENGTH/2
+                result = True
         self.ball_switch()
         return result
 
